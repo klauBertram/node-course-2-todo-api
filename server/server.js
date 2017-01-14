@@ -27,6 +27,14 @@ app.post('/todos', (request, response) => {
 
 // read - GET method
 // /todos/[id]
+app.get('/todos', (request, response) => {
+  Todo.find().then((todos) => {
+    // send obj will make this scalable
+    response.status(200).send({ todos });
+  }, (error) => {
+    response.status(400).send(error);
+  });
+});
 
 app.listen(3000, () => {
   console.log('started on port 3000');
