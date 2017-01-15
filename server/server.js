@@ -1,3 +1,4 @@
+const {ObjectID} = require('mongodb');
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -36,6 +37,36 @@ app.get('/todos', (request, response) => {
   });
 });
 
+
+// GET /todos/12345 
+app.get('/todos/:id', (request, response) => {
+  var id = request.params.id;
+
+  // validate id using isValid
+  // response 404, if id is invalid, send back empty body
+
+  // findById
+  // success
+  // send it back, if no todo, send back w/ 404
+  // error
+  // send 400 and send empty body back
+  if(!ObjectID.isValid(id)){
+    return response.status(404).send();
+  }
+
+  Todo.findById(id).then((result) => {
+    if(!result) {
+      response.status(404).send();
+    }
+
+    response.status(200).send({ result })
+  }).catch((error) => {
+    response.status(400).send();
+  });
+
+  // response.send(request.params);
+});
+
 app.listen(3000, () => {
   console.log('started on port 3000');
 });
@@ -43,7 +74,6 @@ app.listen(3000, () => {
 module.exports = {
   app
 };
-
 
 // create Todo model
 // return constructor function
