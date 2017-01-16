@@ -54,12 +54,20 @@ app.get('/todos/:id', (request, response) => {
     return response.status(404).send();
   }
 
-  Todo.findById(id).then((result) => {
-    if(!result) {
-      response.status(404).send();
+  // why catch method is preferred
+  /* The only difference is that the first solution will have the catch method fired if
+   * code inside the success case throws and error. This is because the catch call is 
+   * chained after the then call.
+   *
+   * The second solution is a little different. It has a success/error handler for the 
+   * findById method, but there is no error handler for the success case.
+   */
+  Todo.findById(id).then((todo) => {
+    if(!todo) {
+      return response.status(404).send();
     }
 
-    response.status(200).send({ result })
+    response.send({ todo })
   }).catch((error) => {
     response.status(400).send();
   });
