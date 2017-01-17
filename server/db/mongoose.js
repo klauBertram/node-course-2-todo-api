@@ -8,7 +8,7 @@ mongoose.Promise = global.Promise;
  * since js is non-blocking, and will execute 
  * commands when the connection to the db is made
  */
-mongoose.connect('mongodb://localhost:27017/TodoApp');
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/TodoApp');
 
 module.exports = {
   mongoose

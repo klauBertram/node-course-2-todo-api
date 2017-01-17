@@ -4,8 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    // heroku start script
+    "start": "node server/server.js",
     "test": "mocha server/**/*.test.js",
     "test-watch": "nodemon --exec 'npm test'"
+  },
+  "engines": {
+    "node": "7.2.1"
   },
   "author": "",
   "license": "ISC",
