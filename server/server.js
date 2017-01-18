@@ -70,12 +70,36 @@ app.get('/todos/:id', (request, response) => {
       return response.status(404).send();
     }
 
-    response.send({ todo })
+    response.send({ todo });
   }).catch((error) => {
     response.status(400).send();
   });
 
   // response.send(request.params);
+});
+
+app.delete('/todos/:id', (request, response) => {
+  // get the id
+  var id = request.params.id;
+
+  // validate id -> not valid? return 404
+  if(!ObjectID.isValid(id)){
+    return response.status(404).send();
+  }
+
+  // remove todo by id
+  // success, if no doc send 404, if doc send doc w/ 200
+  Todo.findByIdAndRemove(id).then((todo) => {
+    // id not found
+    if(!todo){
+      return response.status(404).send();
+    }
+
+    response.status(200).send({ todo });
+  }).catch((error) => {
+    response.status(400).send();
+  });
+  // error, send 400 with {}
 });
 
 app.listen(port, () => {
