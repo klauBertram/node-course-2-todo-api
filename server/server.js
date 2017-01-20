@@ -1,3 +1,5 @@
+require('./config/config');
+
 const _ = require('lodash');
 const {ObjectID} = require('mongodb');
 const express = require('express');
@@ -10,7 +12,7 @@ var { User } = require('./models/user');
 var app = express();
 
 // heroku settings
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 // middlewar
 app.use(bodyParser.json());
