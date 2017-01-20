@@ -10,7 +10,9 @@ const todos = [{
   text: 'First test todo'
 }, {
   _id: new ObjectID(),
-  text: 'Second test todo'
+  text: 'Second test todo',
+  completed: true,
+  completedAt: new Date().getTime()
 }];
 
 /* beforeEach allows to run some code
@@ -108,6 +110,84 @@ describe('GET /todos/:id', () => {
       .get(`/todos/123`)
       .expect(404)
       .end((done));
+  });
+});
+
+describe('PATCH /todos/:id', () => {
+  it('should update the todo', (done) => {
+    // grab id of 1st item
+    // update text, set completed true
+    // 200
+    // custom assert
+    //   text is change
+    //   completed true
+    //   copmletedAt toBeA
+    var hexId = todos[0]._id.toHexString();
+    var text = "edited first test todo";
+
+    request(app)
+      .patch(`/todos/${hexId}`)
+      .send({
+        text,
+        completed: true
+      })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.todo.text).toBe(text);
+        expect(response.body.todo.completed).toBe(true);
+        expect(response.body.todo.completedAt).toBeA('number');
+      })
+      .end(done);
+      // .end((error, result) => {
+      //   if(error){
+      //     return done(error);
+      //   }
+
+      //   Todo.findById(hexId).then((todo) => {
+      //     expect(todo.text).toBe(text);
+      //     expect(todo.completed).toBe(true);
+      //     expect(todo.completedAt).toBeA('number');
+      //     done();
+      //   }).catch((error) => done(error));
+      // });
+  });
+
+  it('should clear completedAt when todo is not completed', (done) => {
+    // grab id of 2nd item
+    // update text, set completed false
+    // 200
+    // custom assert
+    //   text is change
+    //   completed false
+    //   complatedAt null toNotExist
+    var hexId = todos[1]._id.toHexString();
+    var text = 'edited Second test todo';
+
+    request(app)
+      .patch(`/todos/${hexId}`)
+      .send({
+        text,
+        completed: false
+      })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.todo.text).toBe(text);
+        expect(response.body.todo.completed).toBe(false);
+        expect(response.body.todo.completedAt).toNotExist();
+      })
+      .end(done);
+      // .end((error, result) => {
+      //   if(error){
+      //     return done(error);
+      //   }
+
+      //   Todo.findById(hexId).then((todo) => {
+      //     expect(todo.text).toBe(text);
+      //     expect(todo.completed).toBe(false);
+      //     expect(todo.completedAt).toNotExist();
+      //     done();
+      //   }).catch((error) => done(error));
+      // });
   });
 });
 
