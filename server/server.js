@@ -1,3 +1,5 @@
+require('./config/config');
+
 const _ = require('lodash');
 const {ObjectID} = require('mongodb');
 const express = require('express');
@@ -10,16 +12,14 @@ var { User } = require('./models/user');
 var app = express();
 
 // heroku settings
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 // middlewar
 app.use(bodyParser.json());
 
 // create - POST method
 app.post('/todos', (request, response) => {
-  console.log(request.body);
-
-  var todo = Todo({
+  var todo = new Todo({
     text: request.body.text
   });
 
@@ -40,7 +40,6 @@ app.get('/todos', (request, response) => {
     response.status(400).send(error);
   });
 });
-
 
 // GET /todos/12345 
 app.get('/todos/:id', (request, response) => {
@@ -130,6 +129,36 @@ app.patch('/todos/:id', (request, response) => {
     response.status(200).send({ todo });
   }).catch((error) => {
     response.status(400).send();
+  });
+});
+
+// POST /users
+// use pick method from _
+app.post('/users', (request, response) => {
+  var body = _.pick(request.body, ['email', 'password']);
+  // equivalent to
+  // var user = new User({
+  //   email: body.email,
+  //   password: body.password,
+  //   tokens: body.tokens
+  // });
+  var user = new User(body);
+
+  // model methods
+  // e.g. User.someMethod();
+  // User.findByToken
+  // instance methods
+  // e.g. user.someMethod();
+
+  // user.save().then((user) => {
+  user.save().then(() => {
+    // response.status(200).send(result);
+    return user.generateAuthToken();
+  }).then((token) => {
+console.log('server token:', token);
+    response.header('x-auth', token).status(200).send(user);
+  }).catch((error) => {
+    response.status(400).send(error);
   });
 });
 
