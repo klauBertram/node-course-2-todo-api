@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const mongoose = require('mongoose');
@@ -89,7 +90,25 @@ UserSchema.statics.findByToken = function(token){
     'tokens.token': token,
     'tokens.access': 'auth'
   });
-}
+};
+
+// mongoose middleware
+UserSchema.pre('save', function(next){
+  var user = this;
+
+  if(user.isModified('password')) {
+    // hash pw
+    // user.password = hash
+    bcrypt.genSalt(10, (error, salt) => {
+      bcrypt.hash(user.password, salt, (error, hash) => {
+        user.password = hash;
+        next();
+      });
+    });
+  } else {
+    next();
+  }
+});
 
 var User = mongoose.model('User', UserSchema);
 

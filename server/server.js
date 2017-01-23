@@ -156,7 +156,6 @@ app.post('/users', (request, response) => {
     // response.status(200).send(result);
     return user.generateAuthToken();
   }).then((token) => {
-console.log('server token:', token);
     response.header('x-auth', token).status(200).send(user);
   }).catch((error) => {
     response.status(400).send(error);
