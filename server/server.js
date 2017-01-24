@@ -91,6 +91,7 @@ app.delete('/todos/:id', (request, response) => {
   // remove todo by id
   // success, if no doc send 404, if doc send doc w/ 200
   Todo.findByIdAndRemove(id).then((todo) => {
+    console.log('DELETING');
     // id not found
     if(!todo){
       return response.status(404).send();

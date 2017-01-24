@@ -12,7 +12,7 @@ const authenticate = (request, response, next) => {
     request.token = token;
     next();
   }).catch((error) => {
-    console.log(error);
+    // console.log(error);
     response.status(401).send();
   });
 };

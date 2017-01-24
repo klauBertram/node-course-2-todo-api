@@ -76,12 +76,13 @@ UserSchema.statics.findByToken = function(token){
 
   try{
     decoded = jwt.verify(token, 'abc123');
-    console.log('decoded:', decoded);
+    // console.log('decoded:', decoded);
   } catch(error){
     // return new Promise((resolve, reject) => {
     //   reject();
     // });
-    return Promise.reject('some value from failed token in user model');
+    // return Promise.reject('some value from failed token in user model');
+    return Promise.reject();
   }
 
   // return a promise
@@ -102,6 +103,10 @@ UserSchema.pre('save', function(next){
     bcrypt.genSalt(10, (error, salt) => {
       bcrypt.hash(user.password, salt, (error, hash) => {
         user.password = hash;
+        /* reason why we have to call next() in 2 different location
+         * from Udemy Q&A section
+         * Calling next tells Mongoose that you're all done with the middleware. Mongoose is going to save the changes and move on. The first example sets the password then calls next. Mongoose saves the change. The second example starts the process, but next gets called before the bcrypt callback functions have a chance to set the password. The change is not recorded because Mongoose has already saved the user and moved on.
+         */
         next();
       });
     });
