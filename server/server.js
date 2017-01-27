@@ -1,5 +1,6 @@
 require('./config/config');
 
+const bcrypt = require('bcryptjs');
 const _ = require('lodash');
 const {ObjectID} = require('mongodb');
 const express = require('express');
@@ -91,7 +92,6 @@ app.delete('/todos/:id', (request, response) => {
   // remove todo by id
   // success, if no doc send 404, if doc send doc w/ 200
   Todo.findByIdAndRemove(id).then((todo) => {
-    console.log('DELETING');
     // id not found
     if(!todo){
       return response.status(404).send();
@@ -176,6 +176,20 @@ app.listen(port, () => {
 module.exports = {
   app
 };
+
+// POST /users/login {email, password}
+app.post('/users/login', (request, response) => {
+  var body = _.pick(request.body, ['email', 'password']);
+
+  User.findByCredentials(body.email, body.password).then((user) => {
+    // create new token and response http request
+    user.generateAuthToken().then((token) => {
+      response.header('x-auth', token).status(200).send(user);
+    });
+  }).catch((error) => {
+    response.status(401).send({});
+  });
+});
 
 // create Todo model
 // return constructor function

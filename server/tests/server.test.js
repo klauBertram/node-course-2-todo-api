@@ -246,7 +246,7 @@ describe('GET /users/me', () => {
 
 describe('POST /users', () => {
   it('should create a user', (done) => {
-    var email = 'example@example.com';
+    var email = 'steve@avengers.com';
     var password = 'abc123';
 
     request(app)
