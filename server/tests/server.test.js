@@ -327,9 +327,7 @@ describe('POST /users/login', () => {
           return done(error);
         }
 
-        User.findById({
-          _id: users[1]._id
-        }).then((user) => {
+        User.findById(users[1]._id).then((user) => {
           expect(user.tokens[0]).toInclude({
             access: 'auth',
             token: response.headers['x-auth']
@@ -356,9 +354,7 @@ describe('POST /users/login', () => {
           return done(error);
         }
 
-        User.findById({
-          _id: users[1]._id
-        }).then((user) => {
+        User.findById(users[1]._id).then((user) => {
           expect(user.tokens.length).toBe(0);
 
           done();
@@ -366,3 +362,32 @@ describe('POST /users/login', () => {
       });
   });
 });
+
+describe('DELETE /users/me/token', () => {
+  it('should remove auth token on logout', (done) => {
+    // make delete request
+    // set x-auth equal to token
+    // expect 200
+    // find user, verify that tokens array has length of 0
+    request(app)
+      .delete('/users/me/token')
+      .set({
+        'x-auth': users[0].tokens[0].token
+      })
+      .expect(200)
+      .expect((response) => {
+        expect(response.headers['x-auth']).toNotExist();
+      })
+      .end((error, response) => {
+        if(error){
+          return done(error);
+        }
+
+        User.findById(users[0]._id).then((user) => {
+          expect(user.tokens.length).toBe(0);
+
+          done();
+        }).catch((error) => done(error));
+      });
+  });
+})
