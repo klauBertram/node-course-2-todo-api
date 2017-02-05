@@ -20,31 +20,32 @@ const port = process.env.PORT;
 app.use(bodyParser.json());
 
 // create - POST method
-app.post('/todos', (request, response) => {
+app.post('/todos', authenticate, (request, response) => {
   var todo = new Todo({
-    text: request.body.text
+    text: request.body.text,
+    _creator: request.user._id
   });
 
-  todo.save().then((result) => {
-    response.status(200).send(result);
+  todo.save().then((todo) => {
+    response.status(200).send({ todo });
   }, (error) => {
-    response.status(400).send(error);
+    response.status(400).send({});
   });
 });
 
 // read - GET method
 // /todos/[id]
-app.get('/todos', (request, response) => {
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (request, response) => {
+  Todo.find({_creator: request.user._id}).then((todos) => {
     // send obj will make this scalable
     response.status(200).send({ todos });
   }, (error) => {
-    response.status(400).send(error);
+    response.status(400).send({});
   });
 });
 
 // GET /todos/12345 
-app.get('/todos/:id', (request, response) => {
+app.get('/todos/:id', authenticate, (request, response) => {
   var id = request.params.id;
 
   // validate id using isValid
@@ -56,7 +57,7 @@ app.get('/todos/:id', (request, response) => {
   // error
   // send 400 and send empty body back
   if(!ObjectID.isValid(id)){
-    return response.status(404).send();
+    return response.status(404).send({});
   }
 
   // why catch method is preferred
@@ -67,49 +68,66 @@ app.get('/todos/:id', (request, response) => {
    * The second solution is a little different. It has a success/error handler for the 
    * findById method, but there is no error handler for the success case.
    */
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: request.user._id
+  }).then((todo) => {
     if(!todo) {
-      return response.status(404).send();
+      return response.status(404).send({});
     }
 
     response.send({ todo });
   }).catch((error) => {
-    response.status(400).send();
+    response.status(400).send({});
   });
 
   // response.send(request.params);
 });
 
-app.delete('/todos/:id', (request, response) => {
+app.delete('/todos/:id', authenticate, (request, response) => {
   // get the id
   var id = request.params.id;
 
   // validate id -> not valid? return 404
   if(!ObjectID.isValid(id)){
-    return response.status(404).send();
+    return response.status(404).send({});
   }
 
   // remove todo by id
   // success, if no doc send 404, if doc send doc w/ 200
-  Todo.findByIdAndRemove(id).then((todo) => {
+  // Todo.findByIdAndRemove(id).then((todo) => {
+  //   // id not found
+  //   if(!todo){
+  //     return response.status(404).send({});
+  //   }
+
+  //   response.status(200).send({ todo });
+  // }).catch((error) => {
+  //   response.status(400).send({});
+  // });
+  // error, send 400 with {}
+
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: request.user._id
+  }).then((todo) => {
     // id not found
     if(!todo){
-      return response.status(404).send();
+      return response.status(404).send({});
     }
 
     response.status(200).send({ todo });
   }).catch((error) => {
-    response.status(400).send();
+    response.status(400).send({});
   });
-  // error, send 400 with {}
 });
 
-app.patch('/todos/:id', (request, response) => {
+app.patch('/todos/:id', authenticate, (request, response) => {
   var id = request.params.id;
   var body = _.pick(request.body, ['text', 'completed']);
 
   if(!ObjectID.isValid(id)){
-    response.status(404).send();
+    response.status(404).send({});
   }
 
   if(_.isBoolean(body.completed) && body.completed){
@@ -119,18 +137,34 @@ app.patch('/todos/:id', (request, response) => {
     body.completedAt = null;
   }
 
-  Todo.findByIdAndUpdate(id, {
+  // Todo.findByIdAndUpdate(id, {
+  //   $set: body
+  // }, {
+  //   new: true
+  // }).then((todo) => {
+  //   if(!todo){
+  //     return response.status(404).send({});
+  //   }
+
+  //   response.status(200).send({ todo });
+  // }).catch((error) => {
+  //   response.status(400).send({});
+  // });
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: request.user._id
+  }, {
     $set: body
   }, {
     new: true
   }).then((todo) => {
     if(!todo){
-      return response.status(404).send();
+      return response.status(404).send({});
     }
 
     response.status(200).send({ todo });
   }).catch((error) => {
-    response.status(400).send();
+    response.status(400).send({});
   });
 });
 
@@ -157,16 +191,16 @@ app.post('/users', (request, response) => {
     // response.status(200).send(result);
     return user.generateAuthToken();
   }).then((token) => {
-    response.header('x-auth', token).status(200).send(user);
+    response.header('x-auth', token).status(200).send({ user });
   }).catch((error) => {
-    response.status(400).send(error);
+    response.status(400).send({});
   });
 });
 
 
 
 app.get('/users/me', authenticate, (request, response) => {
-  response.send(request.user);
+  response.send({ user: request.user });
 });
 
 app.listen(port, () => {
@@ -184,7 +218,7 @@ app.post('/users/login', (request, response) => {
   User.findByCredentials(body.email, body.password).then((user) => {
     // create new token and response http request
     user.generateAuthToken().then((token) => {
-      response.header('x-auth', token).status(200).send(user);
+      response.header('x-auth', token).status(200).send({ user });
     });
   }).catch((error) => {
     response.status(401).send({});
